@@ -69,15 +69,14 @@ checkResult guess = do
 main = do
 	gen <- getStdGen
 	let l0 = [[s1, s2, s3, s4]| (s1,s2,s3,s4) <- liftM4 (,,,) [R,G,B,Y,T,P,W,O] [R,G,B,Y,T,P,W,O] [R,G,B,Y,T,P,W,O] [R,G,B,Y,T,P,W,O]]
-	let (r, g) = randomR (0, length l0 - 1) gen
-	step l0 (l0 !! r) g
+	step l0 [R, G, B, Y] gen
 
 step listOfPossibleSettings bestguess rgen = do
 	(m, n) <- checkResult bestguess
 	if (m, n) /= (4, 0) then do
 		let l = filter ((==) (m, n) . comp bestguess) listOfPossibleSettings
 		putStrLn $ show l
-		if length l < 200 then do
+		if length l < 2000000 then do
 			let l2 = getFreqMaps l
 			let l3 = map (entropy . countToFreq) $ (map . map) snd l2
 			let l4 = zip l l3
