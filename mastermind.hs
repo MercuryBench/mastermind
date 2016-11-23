@@ -3,7 +3,7 @@ import qualified Data.List as List
 import Control.Monad
 import System.Random
 
-data Colour = R | G | B | Y | T | P | W | O
+data Colour = R | Y | G | B | O | P | M | S
 	deriving (Show, Eq, Ord)
 type Redflags = Int
 type Whiteflags = Int
@@ -67,28 +67,30 @@ checkResult guess = do
 	return (m, n)
 
 main = do
+	putStrLn $ "How many colors? (min. 4, max. 8)"
+	numColors <- getLine
+	let nC = read numColors :: Int
+	let cols = take nC $ [R,Y,G,B,O,P,M,S]
 	gen <- getStdGen
-	let l0 = [[s1, s2, s3, s4]| (s1,s2,s3,s4) <- liftM4 (,,,) [R,G,B,Y,T,P,W,O] [R,G,B,Y,T,P,W,O] [R,G,B,Y,T,P,W,O] [R,G,B,Y,T,P,W,O]]
-	step l0 [R, G, B, Y] gen
+	let l0 = [[s1, s2, s3, s4]| (s1,s2,s3,s4) <- liftM4 (,,,) cols cols cols cols]
+	step l0 [R, Y, G, B] gen
 
 step listOfPossibleSettings bestguess rgen = do
 	(m, n) <- checkResult bestguess
 	if (m, n) /= (4, 0) then do
 		let l = filter ((==) (m, n) . comp bestguess) listOfPossibleSettings
 		putStrLn $ show l
-		if length l < 2000000 then do
-			let l2 = getFreqMaps l
-			let l3 = map (entropy . countToFreq) $ (map . map) snd l2
-			let l4 = zip l l3
-			let choice = findFstWithMaxSnd l4
-			if length choice == 1 then
-				return choice
-			else
-				step l choice rgen
-		else do
-			let (r, g) = randomR (0, length l - 1) rgen
-			let choice = listOfPossibleSettings !! r
-			step l choice g
+		let l2 = getFreqMaps l
+		let l3 = map (entropy . countToFreq) $ (map . map) snd l2
+		let l4 = zip l l3
+		let choice = findFstWithMaxSnd l4
+		if length choice == 1 then
+			return choice
+		else
+			step l choice rgen
+		let (r, g) = randomR (0, length l - 1) rgen
+		let choice = listOfPossibleSettings !! r
+		step l choice g
 	else do 
 		putStrLn "I won!"
 		return bestguess
